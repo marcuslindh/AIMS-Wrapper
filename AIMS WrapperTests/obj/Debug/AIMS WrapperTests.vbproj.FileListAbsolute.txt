@@ -1,0 +1,12 @@
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\bin\Debug\AIMS WrapperTests.dll
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\bin\Debug\AIMS WrapperTests.pdb
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\bin\Debug\AIMS WrapperTests.xml
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\bin\Debug\AIMS.dll
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\bin\Debug\AIMS.pdb
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\bin\Debug\AIMS.xml
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\obj\Debug\AIMS WrapperTests.vbprojResolveAssemblyReference.cache
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\obj\Debug\AIMS_WrapperTests.Resources.resources
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\obj\Debug\AIMS WrapperTests.vbproj.GenerateResource.Cache
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\obj\Debug\AIMS WrapperTests.dll
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\obj\Debug\AIMS WrapperTests.xml
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\AIMS WrapperTests\obj\Debug\AIMS WrapperTests.pdb

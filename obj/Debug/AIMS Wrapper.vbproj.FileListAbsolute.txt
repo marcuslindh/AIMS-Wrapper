@@ -1,0 +1,8 @@
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\bin\Debug\AIMS.dll
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\bin\Debug\AIMS.pdb
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\bin\Debug\AIMS.xml
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\obj\Debug\AIMS.Resources.resources
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\obj\Debug\AIMS Wrapper.vbproj.GenerateResource.Cache
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\obj\Debug\AIMS.dll
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\obj\Debug\AIMS.xml
+C:\Users\marlin\Dropbox\Jobb\Github\AIMS-Wrapper\obj\Debug\AIMS.pdb
