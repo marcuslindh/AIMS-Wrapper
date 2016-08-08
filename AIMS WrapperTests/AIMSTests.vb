@@ -27,7 +27,6 @@ Imports AIMS
 
             Assert.AreEqual(AIMSServer.GetServerVersion.Substring(0, 2), "2.")
         End Sub
-
         <TestMethod()> Public Sub GetServerInfo()
             Dim AIMSServer As New Server
             AIMSServer.Login(Login.Username, Login.Password, Login.Site)
