@@ -3,7 +3,7 @@ Imports System.IO
 Imports System.Text
 Imports System.Xml
 
-Public Class AIMS
+Public Class Server
     Private Shared Property UserName As String = ""
     Private Shared Property Password As String = ""
     Private Property Session As String = ""
