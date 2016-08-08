@@ -63,6 +63,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AIMS.vb" />
+    <Compile Include="FeatureSchema.vb" />
+    <Compile Include="LayerDefinition.vb" />
+    <Compile Include="LayerStyle.vb" />
+    <Compile Include="LayerStyleRule.vb" />
+    <Compile Include="MapDefinition.vb" />
+    <Compile Include="MapLayer.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -78,6 +84,17 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="MapDefinitionExtents.vb" />
+    <Compile Include="PropertyMapping.vb" />
+    <Compile Include="ResourceData.vb" />
+    <Compile Include="ResourceFolderSecurity.vb" />
+    <Compile Include="ResourceItem.vb" />
+    <Compile Include="ServerInfo.vb" />
+    <Compile Include="StyleRuleFill.vb" />
+    <Compile Include="StyleRuleLabel.vb" />
+    <Compile Include="StyleRuleStroke.vb" />
+    <Compile Include="User.vb" />
+    <Compile Include="VectorScaleRange.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
