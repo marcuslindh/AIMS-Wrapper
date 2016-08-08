@@ -524,14 +524,13 @@ Public Class Server
 
         Return Result
     End Function
-
     Public Function GetFeatureSchema(ResourceId As String, Schema As String, ClassName As String) As FeatureSchema
 
         Dim text As String = HTTPGet(Server & "/mapagent/mapagent.fcgi?OPERATION=DESCRIBEFEATURESCHEMA&VERSION=1.0.0&SESSION=" & Session & "&CLIENTAGENT=Autodesk+MapGuide+Studio+v2.6.1.9601&LOCALE=en&RESOURCEID=" & ResourceId & "&SCHEMA=" & Schema & "&CLASSNAMES=" & ClassName)
         Dim Result As New FeatureSchema
 
         Dim xml = XDocument.Load(New StringReader(text))
-        Dim doc = Xml.Descendants()
+        Dim doc = xml.Descendants()
 
         Dim Prefix As String = doc(0).GetNamespaceOfPrefix("xs").NamespaceName
 
