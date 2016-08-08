@@ -28,32 +28,34 @@ Public Class Server
     End Function
 
 
-    Public Sub Login(User As String, Pass As String, _Server As String)
+    Public Sub Login(User As String, Pass As String, Site As String)
         UserName = User
         Password = Pass
-        Server = _Server
+        Server = Site
     End Sub
-    Public Function GetServerVersion() As String
-        Dim text As String = HTTPGet(Server & "/mapagent/mapagent.fcgi?OPERATION=GETSITEVERSION&VERSION=1.0.0&CLIENTAGENT=Autodesk+MapGuide+Studio+v2.6.1.9601")
-        Dim Result As String = ""
-        Dim nx As Boolean = False
-        Using Xml As XmlReader = XmlReader.Create(New StringReader(text))
-            While Xml.Read
+    Public ReadOnly Property GetServerVersion() As String
+        Get
+            Dim text As String = HTTPGet(Server & "/mapagent/mapagent.fcgi?OPERATION=GETSITEVERSION&VERSION=1.0.0&CLIENTAGENT=Autodesk+MapGuide+Studio+v2.6.1.9601")
+            Dim Result As String = ""
+            Dim nx As Boolean = False
+            Using Xml As XmlReader = XmlReader.Create(New StringReader(text))
+                While Xml.Read
 
-                If Xml.NodeType = XmlNodeType.Text And nx = True Then
-                    Result = Xml.Value
-                End If
+                    If Xml.NodeType = XmlNodeType.Text And nx = True Then
+                        Result = Xml.Value
+                    End If
 
-                If Xml.NodeType = XmlNodeType.Element And Xml.Name = "Version" Then
-                    nx = True
-                End If
-            End While
-            Xml.Dispose()
-        End Using
+                    If Xml.NodeType = XmlNodeType.Element And Xml.Name = "Version" Then
+                        nx = True
+                    End If
+                End While
+                Xml.Dispose()
+            End Using
 
 
-        Return Result
-    End Function
+            Return Result
+        End Get
+    End Property
     Public Function GetServerInfo() As ServerInfo
         Dim text As String = HTTPGet(Server & "/mapagent/mapagent.fcgi?OPERATION=GETSITEINFO&VERSION=1.0.0&CLIENTAGENT=Autodesk+MapGuide+Studio+v2.6.1.9601")
         Dim Result As New ServerInfo
@@ -101,16 +103,12 @@ Public Class Server
         Dim items = node.Descendants("User")
 
         For Each item In items
-            'Result += item.Element("Name").Value
-
             Result.Add(New User With {
                        .Name = item.Element("Name").Value,
                        .FullName = item.Element("FullName").Value,
                        .Description = item.Element("Description").Value
                    })
         Next
-
-
         Return Result
     End Function
     Public Function GetResources(Optional ByVal ResourceId As String = "Library://") As List(Of ResourceItem)
@@ -237,6 +235,116 @@ Public Class Server
             Return New MapDefinition
         End Try
     End Function
+
+    Private Shared Sub LayerDefinitionAreaTypeStyle(ByRef item As XElement, ByRef ScaleRange As VectorScaleRange)
+        Dim AreaTypeStyle = item.Descendants("AreaTypeStyle")
+        For Each AreaTypeStyleItem In AreaTypeStyle
+            Dim Style As New LayerStyle
+            Style.Type = LayerStyle.LayerStyleType.Area
+
+            Dim AreaRule = AreaTypeStyleItem.Descendants("AreaRule")
+            For Each AreaRuleItem In AreaRule
+                Dim Rule As New LayerStyleRule
+
+                Rule.LegendLabel = Tools.IfElementToString(AreaRuleItem.Element("LegendLabel"))
+                Rule.Filter = Tools.IfElementToString(AreaRuleItem.Element("Filter"))
+
+                Dim AreaSymbolization2D = AreaRuleItem.Descendants("AreaSymbolization2D")
+                For Each AreaSymbolization2DItem In AreaSymbolization2D
+                    Dim Fill = AreaSymbolization2DItem.Descendants("Fill")
+                    For Each FillItem In Fill
+                        Rule.Fill.FillPattern = Tools.IfElementToString(FillItem.Element("FillPattern"))
+                        Rule.Fill.ForegroundColor = Tools.IfElementToString(FillItem.Element("ForegroundColor"))
+                        Rule.Fill.BackgroundColor = Tools.IfElementToString(FillItem.Element("BackgroundColor"))
+                    Next
+
+                    Dim Stroke = AreaSymbolization2DItem.Descendants("Stroke")
+                    For Each StrokeItem In Stroke
+                        Rule.Stroke.Add(New StyleRuleStroke With {
+                                                                    .LineStyle = Tools.IfElementToString(StrokeItem.Element("LineStyle")),
+                                                                    .Thickness = Tools.IfElementToString(StrokeItem.Element("Thickness")),
+                                                                    .Color = Tools.IfElementToString(StrokeItem.Element("Color")),
+                                                                    .Unit = Tools.IfElementToString(StrokeItem.Element("Unit")),
+                                                                    .SizeContext = Tools.IfElementToString(StrokeItem.Element("SizeContext"))
+                                                                })
+                    Next
+                Next
+
+
+                Style.Rules.Add(Rule)
+            Next
+
+            ScaleRange.Style.Add(Style)
+        Next
+    End Sub
+    Private Shared Sub LayerDefinitionLineTypeStyle(ByRef item As XElement, ByRef ScaleRange As VectorScaleRange)
+        Dim LineTypeStyle = item.Descendants("LineTypeStyle")
+        For Each LineTypeStyleItem In LineTypeStyle
+            Dim Style As New LayerStyle
+            Style.Type = LayerStyle.LayerStyleType.Line
+            Dim LineRule = LineTypeStyleItem.Descendants("LineRule")
+            For Each LineRuleItem In LineRule
+                Dim Rule As New LayerStyleRule
+
+                Rule.LegendLabel = Tools.IfElementToString(LineRuleItem.Element("LegendLabel"))
+                Rule.Filter = Tools.IfElementToString(LineRuleItem.Element("Filter"))
+
+                Dim LineSymbolization2D = LineRuleItem.Descendants("LineSymbolization2D")
+                For Each LineSymbolization2DItem In LineSymbolization2D
+                    Rule.Stroke.Add(New StyleRuleStroke With {
+                                    .LineStyle = Tools.IfElementToString(LineSymbolization2DItem.Element("LineStyle")),
+                                    .Thickness = Tools.IfElementToString(LineSymbolization2DItem.Element("Thickness")),
+                                    .Color = Tools.IfElementToString(LineSymbolization2DItem.Element("Color")),
+                                    .Unit = Tools.IfElementToString(LineSymbolization2DItem.Element("Unit")),
+                                    .SizeContext = Tools.IfElementToString(LineSymbolization2DItem.Element("SizeContext"))
+                                })
+                Next
+                Style.Rules.Add(Rule)
+            Next
+            ScaleRange.Style.Add(Style)
+        Next
+    End Sub
+    Private Shared Sub LayerDefinitionPointTypeStyle(ByRef item As XElement, ByRef ScaleRange As VectorScaleRange)
+        Dim PointTypeStyle = item.Descendants("PointTypeStyle")
+        For Each PointTypeStyleItem In PointTypeStyle
+            Dim Style As New LayerStyle
+            Style.Type = LayerStyle.LayerStyleType.Point
+            Dim PointRule = PointTypeStyleItem.Descendants("PointRule")
+            For Each PointRuleItem In PointRule
+                Dim Rule As New LayerStyleRule
+                Rule.LegendLabel = Tools.IfElementToString(PointRuleItem.Element("LegendLabel"))
+                Rule.Filter = Tools.IfElementToString(PointRuleItem.Element("Filter"))
+
+                Dim Label = PointRuleItem.Descendants("Label")
+                For Each LabelItem In Label
+                    Rule.Label.Unit = Tools.IfElementToString(LabelItem.Element("Unit"))
+                    Rule.Label.SizeContext = Tools.IfElementToString(LabelItem.Element("SizeContext"))
+                    Rule.Label.SizeX = Tools.IfElementToString(LabelItem.Element("SizeX"))
+                    Rule.Label.SizeY = Tools.IfElementToString(LabelItem.Element("SizeY"))
+                    Rule.Label.Rotation = Tools.IfElementToString(LabelItem.Element("Rotation"))
+                    Rule.Label.Text = Tools.IfElementToString(LabelItem.Element("Text"))
+                    Rule.Label.FontName = Tools.IfElementToString(LabelItem.Element("FontName"))
+                    Rule.Label.ForegroundColor = Tools.IfElementToString(LabelItem.Element("ForegroundColor"))
+                    Rule.Label.BackgroundStyle = Tools.IfElementToString(LabelItem.Element("BackgroundStyle"))
+                    Rule.Label.BackgroundColor = Tools.IfElementToString(LabelItem.Element("BackgroundColor"))
+                    Rule.Label.HorizontalAlignment = Tools.IfElementToString(LabelItem.Element("HorizontalAlignment"))
+                    Rule.Label.Italic = Tools.IfElementToBoolean(LabelItem.Element("Italic"))
+                    Rule.Label.Bold = Tools.IfElementToBoolean(LabelItem.Element("Bold"))
+                    Rule.Label.Underlined = Tools.IfElementToBoolean(LabelItem.Element("Underlined"))
+
+                    Dim AdvancedPlacement = LabelItem.Descendants("AdvancedPlacement")
+                    For Each AdvancedPlacementItem In AdvancedPlacement
+                        Rule.Label.AdvancedPlacement.ScaleLimit = Tools.IfElementToString(AdvancedPlacementItem.Element("ScaleLimit"))
+                    Next
+                Next
+
+
+                Style.Rules.Add(Rule)
+            Next
+            ScaleRange.Style.Add(Style)
+        Next
+    End Sub
+
     Public Function GetLayerDefinition(ResourceId As String) As LayerDefinition
         Dim text As String = HTTPGet(Server & "/mapagent/mapagent.fcgi?OPERATION=GETRESOURCECONTENT&VERSION=1.0.0&SESSION=" & Session & "&CLIENTAGENT=Autodesk+MapGuide+Studio+v2.6.1.9601&LOCALE=en&RESOURCEID=" & ResourceId)
         Dim xml = XDocument.Load(New StringReader(text))
@@ -269,112 +377,114 @@ Public Class Server
                 ScaleRange.MaxScale = Tools.IfElementToInteger(item.Element("MaxScale"))
                 ScaleRange.MinScale = Tools.IfElementToInteger(item.Element("MinScale"))
 
-                Dim AreaTypeStyle = item.Descendants("AreaTypeStyle")
-                For Each AreaTypeStyleItem In AreaTypeStyle
-                    Dim Style As New LayerStyle
-                    Style.Type = LayerStyle.LayerStyleType.Area
+                LayerDefinitionAreaTypeStyle(item, ScaleRange)
+                'Dim AreaTypeStyle = item.Descendants("AreaTypeStyle")
+                'For Each AreaTypeStyleItem In AreaTypeStyle
+                '    Dim Style As New LayerStyle
+                '    Style.Type = LayerStyle.LayerStyleType.Area
 
-                    Dim AreaRule = AreaTypeStyleItem.Descendants("AreaRule")
-                    For Each AreaRuleItem In AreaRule
-                        Dim Rule As New LayerStyleRule
+                '    Dim AreaRule = AreaTypeStyleItem.Descendants("AreaRule")
+                '    For Each AreaRuleItem In AreaRule
+                '        Dim Rule As New LayerStyleRule
 
-                        Rule.LegendLabel = Tools.IfElementToString(AreaRuleItem.Element("LegendLabel"))
-                        Rule.Filter = Tools.IfElementToString(AreaRuleItem.Element("Filter"))
+                '        Rule.LegendLabel = Tools.IfElementToString(AreaRuleItem.Element("LegendLabel"))
+                '        Rule.Filter = Tools.IfElementToString(AreaRuleItem.Element("Filter"))
 
-                        Dim AreaSymbolization2D = AreaRuleItem.Descendants("AreaSymbolization2D")
-                        For Each AreaSymbolization2DItem In AreaSymbolization2D
-                            Dim Fill = AreaSymbolization2DItem.Descendants("Fill")
-                            For Each FillItem In Fill
-                                Rule.Fill.FillPattern = Tools.IfElementToString(FillItem.Element("FillPattern"))
-                                Rule.Fill.ForegroundColor = Tools.IfElementToString(FillItem.Element("ForegroundColor"))
-                                Rule.Fill.BackgroundColor = Tools.IfElementToString(FillItem.Element("BackgroundColor"))
-                            Next
+                '        Dim AreaSymbolization2D = AreaRuleItem.Descendants("AreaSymbolization2D")
+                '        For Each AreaSymbolization2DItem In AreaSymbolization2D
+                '            Dim Fill = AreaSymbolization2DItem.Descendants("Fill")
+                '            For Each FillItem In Fill
+                '                Rule.Fill.FillPattern = Tools.IfElementToString(FillItem.Element("FillPattern"))
+                '                Rule.Fill.ForegroundColor = Tools.IfElementToString(FillItem.Element("ForegroundColor"))
+                '                Rule.Fill.BackgroundColor = Tools.IfElementToString(FillItem.Element("BackgroundColor"))
+                '            Next
 
-                            Dim Stroke = AreaSymbolization2DItem.Descendants("Stroke")
-                            For Each StrokeItem In Stroke
-                                Rule.Stroke.Add(New StyleRuleStroke With {
-                                                                            .LineStyle = Tools.IfElementToString(StrokeItem.Element("LineStyle")),
-                                                                            .Thickness = Tools.IfElementToString(StrokeItem.Element("Thickness")),
-                                                                            .Color = Tools.IfElementToString(StrokeItem.Element("Color")),
-                                                                            .Unit = Tools.IfElementToString(StrokeItem.Element("Unit")),
-                                                                            .SizeContext = Tools.IfElementToString(StrokeItem.Element("SizeContext"))
-                                                                        })
-                            Next
-                        Next
-
-
-                        Style.Rules.Add(Rule)
-                    Next
-
-                    ScaleRange.Style.Add(Style)
-                Next
-
-                Dim LineTypeStyle = item.Descendants("LineTypeStyle")
-                For Each LineTypeStyleItem In LineTypeStyle
-                    Dim Style As New LayerStyle
-                    Style.Type = LayerStyle.LayerStyleType.Line
-                    Dim LineRule = LineTypeStyleItem.Descendants("LineRule")
-                    For Each LineRuleItem In LineRule
-                        Dim Rule As New LayerStyleRule
-
-                        Rule.LegendLabel = Tools.IfElementToString(LineRuleItem.Element("LegendLabel"))
-                        Rule.Filter = Tools.IfElementToString(LineRuleItem.Element("Filter"))
-
-                        Dim LineSymbolization2D = LineRuleItem.Descendants("LineSymbolization2D")
-                        For Each LineSymbolization2DItem In LineSymbolization2D
-                            Rule.Stroke.Add(New StyleRuleStroke With {
-                                            .LineStyle = Tools.IfElementToString(LineSymbolization2DItem.Element("LineStyle")),
-                                            .Thickness = Tools.IfElementToString(LineSymbolization2DItem.Element("Thickness")),
-                                            .Color = Tools.IfElementToString(LineSymbolization2DItem.Element("Color")),
-                                            .Unit = Tools.IfElementToString(LineSymbolization2DItem.Element("Unit")),
-                                            .SizeContext = Tools.IfElementToString(LineSymbolization2DItem.Element("SizeContext"))
-                                        })
-                        Next
-                        Style.Rules.Add(Rule)
-                    Next
+                '            Dim Stroke = AreaSymbolization2DItem.Descendants("Stroke")
+                '            For Each StrokeItem In Stroke
+                '                Rule.Stroke.Add(New StyleRuleStroke With {
+                '                                                            .LineStyle = Tools.IfElementToString(StrokeItem.Element("LineStyle")),
+                '                                                            .Thickness = Tools.IfElementToString(StrokeItem.Element("Thickness")),
+                '                                                            .Color = Tools.IfElementToString(StrokeItem.Element("Color")),
+                '                                                            .Unit = Tools.IfElementToString(StrokeItem.Element("Unit")),
+                '                                                            .SizeContext = Tools.IfElementToString(StrokeItem.Element("SizeContext"))
+                '                                                        })
+                '            Next
+                '        Next
 
 
-                    ScaleRange.Style.Add(Style)
-                Next
+                '        Style.Rules.Add(Rule)
+                '    Next
 
-                Dim PointTypeStyle = item.Descendants("PointTypeStyle")
-                For Each PointTypeStyleItem In PointTypeStyle
-                    Dim Style As New LayerStyle
-                    Style.Type = LayerStyle.LayerStyleType.Point
-                    Dim PointRule = PointTypeStyleItem.Descendants("PointRule")
-                    For Each PointRuleItem In PointRule
-                        Dim Rule As New LayerStyleRule
-                        Rule.LegendLabel = Tools.IfElementToString(PointRuleItem.Element("LegendLabel"))
-                        Rule.Filter = Tools.IfElementToString(PointRuleItem.Element("Filter"))
+                '    ScaleRange.Style.Add(Style)
+                'Next
 
-                        Dim Label = PointRuleItem.Descendants("Label")
-                        For Each LabelItem In Label
-                            Rule.Label.Unit = Tools.IfElementToString(LabelItem.Element("Unit"))
-                            Rule.Label.SizeContext = Tools.IfElementToString(LabelItem.Element("SizeContext"))
-                            Rule.Label.SizeX = Tools.IfElementToString(LabelItem.Element("SizeX"))
-                            Rule.Label.SizeY = Tools.IfElementToString(LabelItem.Element("SizeY"))
-                            Rule.Label.Rotation = Tools.IfElementToString(LabelItem.Element("Rotation"))
-                            Rule.Label.Text = Tools.IfElementToString(LabelItem.Element("Text"))
-                            Rule.Label.FontName = Tools.IfElementToString(LabelItem.Element("FontName"))
-                            Rule.Label.ForegroundColor = Tools.IfElementToString(LabelItem.Element("ForegroundColor"))
-                            Rule.Label.BackgroundStyle = Tools.IfElementToString(LabelItem.Element("BackgroundStyle"))
-                            Rule.Label.BackgroundColor = Tools.IfElementToString(LabelItem.Element("BackgroundColor"))
-                            Rule.Label.HorizontalAlignment = Tools.IfElementToString(LabelItem.Element("HorizontalAlignment"))
-                            Rule.Label.Italic = Tools.IfElementToBoolean(LabelItem.Element("Italic"))
-                            Rule.Label.Bold = Tools.IfElementToBoolean(LabelItem.Element("Bold"))
-                            Rule.Label.Underlined = Tools.IfElementToBoolean(LabelItem.Element("Underlined"))
+                LayerDefinitionLineTypeStyle(item, ScaleRange)
+                'Dim LineTypeStyle = item.Descendants("LineTypeStyle")
+                'For Each LineTypeStyleItem In LineTypeStyle
+                '    Dim Style As New LayerStyle
+                '    Style.Type = LayerStyle.LayerStyleType.Line
+                '    Dim LineRule = LineTypeStyleItem.Descendants("LineRule")
+                '    For Each LineRuleItem In LineRule
+                '        Dim Rule As New LayerStyleRule
 
-                            Dim AdvancedPlacement = LabelItem.Descendants("AdvancedPlacement")
-                            For Each AdvancedPlacementItem In AdvancedPlacement
-                                Rule.Label.AdvancedPlacement.ScaleLimit = Tools.IfElementToString(AdvancedPlacementItem.Element("ScaleLimit"))
-                            Next
-                        Next
+                '        Rule.LegendLabel = Tools.IfElementToString(LineRuleItem.Element("LegendLabel"))
+                '        Rule.Filter = Tools.IfElementToString(LineRuleItem.Element("Filter"))
+
+                '        Dim LineSymbolization2D = LineRuleItem.Descendants("LineSymbolization2D")
+                '        For Each LineSymbolization2DItem In LineSymbolization2D
+                '            Rule.Stroke.Add(New StyleRuleStroke With {
+                '                            .LineStyle = Tools.IfElementToString(LineSymbolization2DItem.Element("LineStyle")),
+                '                            .Thickness = Tools.IfElementToString(LineSymbolization2DItem.Element("Thickness")),
+                '                            .Color = Tools.IfElementToString(LineSymbolization2DItem.Element("Color")),
+                '                            .Unit = Tools.IfElementToString(LineSymbolization2DItem.Element("Unit")),
+                '                            .SizeContext = Tools.IfElementToString(LineSymbolization2DItem.Element("SizeContext"))
+                '                        })
+                '        Next
+                '        Style.Rules.Add(Rule)
+                '    Next
 
 
-                        Style.Rules.Add(Rule)
-                    Next
-                    ScaleRange.Style.Add(Style)
-                Next
+                '    ScaleRange.Style.Add(Style)
+                'Next
+                LayerDefinitionPointTypeStyle(item, ScaleRange)
+                'Dim PointTypeStyle = item.Descendants("PointTypeStyle")
+                'For Each PointTypeStyleItem In PointTypeStyle
+                '    Dim Style As New LayerStyle
+                '    Style.Type = LayerStyle.LayerStyleType.Point
+                '    Dim PointRule = PointTypeStyleItem.Descendants("PointRule")
+                '    For Each PointRuleItem In PointRule
+                '        Dim Rule As New LayerStyleRule
+                '        Rule.LegendLabel = Tools.IfElementToString(PointRuleItem.Element("LegendLabel"))
+                '        Rule.Filter = Tools.IfElementToString(PointRuleItem.Element("Filter"))
+
+                '        Dim Label = PointRuleItem.Descendants("Label")
+                '        For Each LabelItem In Label
+                '            Rule.Label.Unit = Tools.IfElementToString(LabelItem.Element("Unit"))
+                '            Rule.Label.SizeContext = Tools.IfElementToString(LabelItem.Element("SizeContext"))
+                '            Rule.Label.SizeX = Tools.IfElementToString(LabelItem.Element("SizeX"))
+                '            Rule.Label.SizeY = Tools.IfElementToString(LabelItem.Element("SizeY"))
+                '            Rule.Label.Rotation = Tools.IfElementToString(LabelItem.Element("Rotation"))
+                '            Rule.Label.Text = Tools.IfElementToString(LabelItem.Element("Text"))
+                '            Rule.Label.FontName = Tools.IfElementToString(LabelItem.Element("FontName"))
+                '            Rule.Label.ForegroundColor = Tools.IfElementToString(LabelItem.Element("ForegroundColor"))
+                '            Rule.Label.BackgroundStyle = Tools.IfElementToString(LabelItem.Element("BackgroundStyle"))
+                '            Rule.Label.BackgroundColor = Tools.IfElementToString(LabelItem.Element("BackgroundColor"))
+                '            Rule.Label.HorizontalAlignment = Tools.IfElementToString(LabelItem.Element("HorizontalAlignment"))
+                '            Rule.Label.Italic = Tools.IfElementToBoolean(LabelItem.Element("Italic"))
+                '            Rule.Label.Bold = Tools.IfElementToBoolean(LabelItem.Element("Bold"))
+                '            Rule.Label.Underlined = Tools.IfElementToBoolean(LabelItem.Element("Underlined"))
+
+                '            Dim AdvancedPlacement = LabelItem.Descendants("AdvancedPlacement")
+                '            For Each AdvancedPlacementItem In AdvancedPlacement
+                '                Rule.Label.AdvancedPlacement.ScaleLimit = Tools.IfElementToString(AdvancedPlacementItem.Element("ScaleLimit"))
+                '            Next
+                '        Next
+
+
+                '        Style.Rules.Add(Rule)
+                '    Next
+                '    ScaleRange.Style.Add(Style)
+                'Next
 
 
                 Result.VectorScaleRange.Add(ScaleRange)
@@ -418,9 +528,10 @@ Public Class Server
     Public Function GetFeatureSchema(ResourceId As String, Schema As String, ClassName As String) As FeatureSchema
 
         Dim text As String = HTTPGet(Server & "/mapagent/mapagent.fcgi?OPERATION=DESCRIBEFEATURESCHEMA&VERSION=1.0.0&SESSION=" & Session & "&CLIENTAGENT=Autodesk+MapGuide+Studio+v2.6.1.9601&LOCALE=en&RESOURCEID=" & ResourceId & "&SCHEMA=" & Schema & "&CLASSNAMES=" & ClassName)
-        Dim xml = XDocument.Load(New StringReader(text))
         Dim Result As New FeatureSchema
-        Dim doc = xml.Descendants()
+
+        Dim xml = XDocument.Load(New StringReader(text))
+        Dim doc = Xml.Descendants()
 
         Dim Prefix As String = doc(0).GetNamespaceOfPrefix("xs").NamespaceName
 
@@ -442,18 +553,18 @@ Public Class Server
 End Class
 
 Friend Class Tools
+    Private Sub New()
+    End Sub
 
-    Public Shared Function StringToBase64(text As String) As String
+    Public Shared Function StringToBase64(ByRef text As String) As String
         Dim buffer = System.Text.Encoding.UTF8.GetBytes(text)
         Return System.Convert.ToBase64String(buffer)
     End Function
-
     Public Shared Sub SetBasicAuthHeader(Request As WebRequest, Username As String, Password As String)
         Dim AuthInfo As String = Username & ":" & Password
         AuthInfo = StringToBase64(AuthInfo)
         Request.Headers("Authorization") = "Basic " & AuthInfo
     End Sub
-
     Public Shared Function IfElementToString(obj As XElement) As String
         If obj IsNot Nothing Then
             Return obj.Value
@@ -489,5 +600,6 @@ Friend Class Tools
         Dim res As Long = 0
         Long.TryParse(str, res)
         Return res
+
     End Function
 End Class

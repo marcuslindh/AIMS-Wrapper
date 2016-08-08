@@ -10,9 +10,9 @@ Imports System.Runtime.InteropServices
 
 <Assembly: AssemblyTitle("AIMS Wrapper")> 
 <Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("IT Umea kommun")> 
+<Assembly: AssemblyCompany("")> 
 <Assembly: AssemblyProduct("AIMS Wrapper")> 
-<Assembly: AssemblyCopyright("Copyright © IT Umea kommun 2016")> 
+<Assembly: AssemblyCopyright("Copyright © marcus lindh")> 
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)>

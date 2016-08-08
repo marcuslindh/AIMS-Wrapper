@@ -1,8 +1,8 @@
 ﻿Public Class LayerStyle
     Public Enum LayerStyleType
-        Area = 1
-        Line = 2
-        Point = 3
+        Area = 0
+        Line = 1
+        Point = 2
     End Enum
 
     Public Property Type As LayerStyleType
